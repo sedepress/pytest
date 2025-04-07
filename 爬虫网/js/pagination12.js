@@ -29,6 +29,26 @@ window._$ = {
     }
 }
 
+screen = {}
+
+canvas = {
+    'getContext': function (ele) {
+        console.log(arguments)
+    },
+    'textBaseline': function (ele) {
+        console.log(arguments)
+    },
+}
+
+document = {
+    'createElement': function (ele) {
+        console.log(arguments)
+        if (ele === 'canvas') {
+            return canvas;
+        }
+    }
+}
+
 delete global;
 
 const proxyObjs = [window]
