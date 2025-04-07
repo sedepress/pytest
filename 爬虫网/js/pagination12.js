@@ -1,3 +1,41 @@
+function ProxyDocumentObjects(proxyObjs) {
+    for (let i = 0; i < proxyObjs.length; i++) {
+        const documentObj = proxyObjs[i];
+        const keys = Object.keys(documentObj)
+        keys.forEach(key => {
+            const value = documentObj[key];
+            if (value && typeof value === 'object') {
+                documentObj[key] = new Proxy(value, {
+                    get(target, p, receiver) {
+                        const propValue = Reflect.get(target, p, receiver);
+                        console.log('方法：', 'get', '对象：', `${key}`, '属性：', p, '属性类型：', `${typeof p}`, '属性值：', propValue, '属性值类型：', `${typeof propValue}`);
+                        return propValue;
+                    },
+                    set(target, p, n, receiver) {
+                        console.log('方法：', 'set', '对象：', `${key}`, '属性：', p, '属性类型：', `${typeof p}`, '属性值：', n, '属性值类型：', `${typeof n}`);
+                        return Reflect.set(target, p, n, receiver);
+                    },
+                })
+            }
+        })
+    }
+}
+
+window = global;
+
+window._$ = {
+    'ajax': function () {
+        console.log(arguments)
+    }
+}
+
+delete global;
+
+const proxyObjs = [window]
+
+ProxyDocumentObjects(proxyObjs)
+
+
 const Q0Q00OQ = QOQQ;
 var OＯ0$ = 'jsjiami.com.v7';
 
@@ -917,8 +955,13 @@ function QOQQ(_0x4aea86, _0x36e8fe) {
             OQOQQ0Q = OOO00OO[OQQQ00Q(0x353, '8k$&')](),
                 Q0OQO0O = OOO00OO[OQQQ00Q(0x240, 'MpX#')](),
                 QOOQQQ0 = QQ0OQOO[O00000O++];
-            if (QOOQQQ0)
+            if (QOOQQQ0) {
+                if (OQOQQ0Q === '$') {
+                    Q0OQO0O[OQOQQ0Q] = window._$
+                }
+
                 OOO00OO['push'](Q0OQO0O[OQOQQ0Q]);
+            }
         }
         if (QQ0OQOQ['pPRpe'](OQO00OO, 0x19)) {
             if (QQ0OQOQ['yMREM'](QQ0OQOQ[OQQQ00Q(0x348, '@hHo')], QQ0OQOQ['rfIWa']))
@@ -1370,3 +1413,4 @@ function loadPage(page) {
         }
     });
 }
+
