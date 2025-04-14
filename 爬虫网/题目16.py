@@ -1,3 +1,4 @@
+import datetime
 import time
 
 import execjs
@@ -10,49 +11,49 @@ cookies = {
     'HMACCOUNT': 'F8D55D100B06DC65',
     'sessionid': 'vmaeexrf3cnbsy6o76brm9pkgy302z33',
     's': '51b351b351b351b370b0d030d030507090d0f030f0',
-    'Hm_lpvt_b5d072258d61ab3cd6a9d485aac7f183': '1744356463',
-    'v': 'QXo1aHl0M0IxV3FqOHdFMTNCMkRzSmZlaVYtRmZ3TDVsRU8yM2VoSHFnRjhpOURCVUE5U0NXVFRCdS03MTc0NDM1NjUyMjc3Nw==',
+    'v': 'QTJ4b3BBdk1KN3lsLVRQN3UtNXhSbEhrTzBHYkpSTDhFc3NrazhhdGVRMjY5Z0pfN2pYZ1gyTFo5Q0FWMTc0NDM1ODc3MTkzOA==',
+    'Hm_lpvt_b5d072258d61ab3cd6a9d485aac7f183': '1744484789',
 }
 
 headers = {
-    'accept': '*/*',
+    'accept': 'application/json, text/javascript, */*; q=0.01',
     'accept-language': 'zh-CN,zh;q=0.9',
-    'hexin-v': 'QXo1aHl0M0IxV3FqOHdFMTNCMkRzSmZlaVYtRmZ3TDVsRU8yM2VoSHFnRjhpOURCVUE5U0NXVFRCdS03MTc0NDM1NjUyMjc3Nw==',
+    'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+    'origin': 'https://stu.tulingpyton.cn',
     'priority': 'u=1, i',
-    'referer': 'https://stu.tulingpyton.cn/problem-detail/15/',
-    'sec-ch-ua': '"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"',
+    'referer': 'https://stu.tulingpyton.cn/problem-detail/16/',
+    'sec-ch-ua': '"Google Chrome";v="135", "Not-A.Brand";v="8", "Chromium";v="135"',
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"macOS"',
     'sec-fetch-dest': 'empty',
     'sec-fetch-mode': 'cors',
     'sec-fetch-site': 'same-origin',
-    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
-    # 'cookie': 'Hm_lvt_b5d072258d61ab3cd6a9d485aac7f183=1742952358; HMACCOUNT=F8D55D100B06DC65; sessionid=vmaeexrf3cnbsy6o76brm9pkgy302z33; s=51b351b351b351b370b0d030d030507090d0f030f0; Hm_lpvt_b5d072258d61ab3cd6a9d485aac7f183=1744356463; v=QXo1aHl0M0IxV3FqOHdFMTNCMkRzSmZlaVYtRmZ3TDVsRU8yM2VoSHFnRjhpOURCVUE5U0NXVFRCdS03MTc0NDM1NjUyMjc3Nw==',
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
+    'x-requested-with': 'XMLHttpRequest',
+    # 'cookie': 'Hm_lvt_b5d072258d61ab3cd6a9d485aac7f183=1742952358; HMACCOUNT=F8D55D100B06DC65; sessionid=vmaeexrf3cnbsy6o76brm9pkgy302z33; s=51b351b351b351b370b0d030d030507090d0f030f0; v=QTJ4b3BBdk1KN3lsLVRQN3UtNXhSbEhrTzBHYkpSTDhFc3NrazhhdGVRMjY5Z0pfN2pYZ1gyTFo5Q0FWMTc0NDM1ODc3MTkzOA==; Hm_lpvt_b5d072258d61ab3cd6a9d485aac7f183=1744484789',
 }
 
 
-def get_v():
-    with open('./js/15.js', 'r') as f:
-        url = execjs.compile(f.read()).call('window.uuu')
+def get_v(t):
+    with open('./js/PcSign.js', 'r') as f:
+        url = execjs.compile(f.read()).call('getM',
+                                            {'page': page, 't': t})
         return url
 
 
 while True:
-    cookies.update({'v': get_v()})
-
-    params = {
-        'page': page,
-    }
+    t = int(datetime.datetime.now().timestamp() * 1000)
+    h5 = get_v(t)
+    data = f'{{"page":"{page}","t":"{t}","h5":"{h5}"}}'
 
     time.sleep(1)
-    response = requests.get('https://stu.tulingpyton.cn/api/problem-detail/15/data/', cookies=cookies,
-                            headers=headers, params=params)
+    response = requests.post('https://stu.tulingpyton.cn/api/problem-detail/16/data/', cookies=cookies,
+                             headers=headers, data=data)
 
     if response.status_code != 200:
         break
 
     data = response.json()
-    print(data)
 
     total += sum(data['current_array'])
     page += 1

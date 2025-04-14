@@ -1,4 +1,4 @@
-const Crypto = require("crypto-js");
+// const Crypto = require("crypto-js");
 
 window = global
 Window = function (){}
@@ -6,8 +6,6 @@ window.Window = Window
 window.__proto__ = Window.prototype
 
 delete global
-delete Buffer
-delete process
 
 function CanvasRenderingContext2D() {
     this.direction = "ltr";
@@ -89,7 +87,7 @@ document = {
         console.log('document::querySelector:', ele);
     },
     'createElement': function (tagName) {
-        console.log('document::createElement:', arguments);
+        // console.log('document::createElement:', arguments);
 
         if (tagName === 'script') {
             return '<script type="text/javascript" src="https://storage.360buyimg.com/webcontainer/main/js-security-v3-rac.js?v=20250412"></script>';
@@ -232,7 +230,7 @@ function ProxyDocumentObjects(proxyObjs) {
 
 const proxyObjs = [window, _all, navigator, document, location]
 
-ProxyDocumentObjects(proxyObjs)
+// ProxyDocumentObjects(proxyObjs)
 
 var Sign = function() {
     function a04afa8n(_$c, _$n) {
@@ -5801,10 +5799,10 @@ var Sign = function() {
         }
         navigator.userAgent && !/Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) && _$TG(_$c.hXTxR(XV(0x1d3), _$T6(Date.now() - (-0x30719 * -0x21 + -0x78bf3 * -0x2 + -0x3c139f) * (-0x112 + -0x16a + -0x7 * -0x5b + 0.10000000000000009), _$c.Pcqsl)), 0x1 * -0x1319 + -0x15c6 + -0x1 * -0x2cc7).then(function(_$lO) {
             var Xe = XV;
-            console.log(Xe(0x305));
+            // console.log(Xe(0x305));
         }).catch(function(_$lO) {
             var Xy = XV;
-            console.log(Xy(0x28c));
+            // console.log(Xy(0x28c));
         });
     }();
     var _$To = {
@@ -10909,6 +10907,8 @@ window.PcSign = new window.Sign({
     }
 })
 
-// window.PcSign.sign({'page':1,'t': 1744478066803})
-//
-// console.log(window.h5set.length)
+function getM(obj) {
+    window.PcSign.sign(obj)
+
+    return window.h5set
+}
