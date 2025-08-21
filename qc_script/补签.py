@@ -1,9 +1,9 @@
 import requests
 
 def main():
-    userIds = [1, 2]
-    forumId = 1
-    signDates = ['2025-05-01', '2025-05-02', '2025-05-03']
+    userIds = [2604968]
+    forumId = 10276
+    signDates = ['2025-08-14']
 
     for userId in userIds:
         for signDate in signDates:
