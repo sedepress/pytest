@@ -1,3 +1,9 @@
 ./爬虫网/node_modules/
 ./.venv/
 ./.idea/
+
+# 数据迁移工具配置和日志
+qc_script/db_config.py
+qc_script/migration_*.log
+qc_script/*.pyc
+qc_script/__pycache__/

@@ -13,13 +13,14 @@ import zipfile
 from datetime import datetime
 from tkinter import filedialog
 
-import requests
+from DrissionPage import ChromiumPage
 
 
 class PhoneClassifier:
     def __init__(self):
         self.us_area_codes = self.load_us_area_codes()
-        self.session = requests.Session()
+        self.browser = ChromiumPage()
+        self.browser.set.auto_handle_alert()
         
     def load_us_area_codes(self):
         """加载美国区号列表"""
@@ -146,7 +147,8 @@ class PhoneClassifier:
         
         return us_phones_dir, non_us_phones_dir, physical_cards_dir, virtual_cards_dir
     
-    def check_carrier_type(self, phone, proxy_info):
+    
+    def check_carrier_type(self, phone):
         """检查运营商类型（实体卡/虚拟卡）"""
         # 清理电话号码
         clean_phone = re.sub(r'[^\d]', '', str(phone))
@@ -163,185 +165,22 @@ class PhoneClassifier:
         else:
             return False
         
-        # 设置代理
-        proxies = None
-        if proxy_info and len(proxy_info) >= 3:
-            proxy_type = proxy_info[0]  # 3表示SOCKS5
-            proxy_host = proxy_info[1]
-            proxy_port = proxy_info[2]
-            proxy_user = proxy_info[4] if len(proxy_info) > 4 else None
-            proxy_pass = proxy_info[5] if len(proxy_info) > 5 else None
+        try:
+            # 访问主页面先，让DrissionPage处理可能的Cloudflare挑战
+            print("访问主页面...")
+            self.browser.get('https://freecarrierlookup.com/')
             
-            try:
-                if proxy_type == 3:  # SOCKS5代理
-                    # 验证代理参数
-                    if not proxy_host or not proxy_port:
-                        print("代理主机或端口为空，跳过代理设置")
-                        proxies = None
-                    else:
-                        # URL编码用户名和密码中的特殊字符
-                        from urllib.parse import quote
-                        encoded_user = quote(str(proxy_user)) if proxy_user else None
-                        encoded_pass = quote(str(proxy_pass)) if proxy_pass else None
-                        
-                        # 设置SOCKS5代理
-                        if encoded_user and encoded_pass:
-                            proxy_url = f"socks5h://{encoded_user}:{encoded_pass}@{proxy_host}:{proxy_port}"
-                        else:
-                            proxy_url = f"socks5h://{proxy_host}:{proxy_port}"
-                        
-                        print(f"使用SOCKS5代理: {proxy_url.split('@')[-1] if '@' in proxy_url else proxy_url}")
-                        # 配置requests使用SOCKS5代理
-                        proxies = {
-                            'http': proxy_url,
-                            'https': proxy_url
-                        }
-                else:
-                    # 其他类型的代理（HTTP/HTTPS）
-                    if not proxy_host or not proxy_port:
-                        print("代理主机或端口为空，跳过代理设置")
-                        proxies = None
-                    else:
-                        from urllib.parse import quote
-                        encoded_user = quote(str(proxy_user)) if proxy_user else None
-                        encoded_pass = quote(str(proxy_pass)) if proxy_pass else None
-                        
-                        if encoded_user and encoded_pass:
-                            proxy_url = f'socks5h://{encoded_user}:{encoded_pass}@{proxy_host}:{proxy_port}'
-                        else:
-                            proxy_url = f'socks5h://{proxy_host}:{proxy_port}'
+            # 填充表单数据
+            print(f"检查电话号码: {phone_number}")
 
-                        print(f"使用HTTP代理: {proxy_url.split('@')[-1] if '@' in proxy_url else proxy_url}")
-                        proxies = {
-                            'http': proxy_url,
-                            'https': proxy_url
-                        }
-            except Exception as e:
-                print(f"设置代理时出错: {e}")
-                proxies = None
-
-        cookies = {
-            'PHPSESSID': '78256ebt61le7vudq79d8bm907',
-            '_ga': 'GA1.2.613962221.1755675688',
-            '_gid': 'GA1.2.308913265.1755675688',
-            'cf_clearance': 'UsNXOkAx1.5XAZeYeyJ4tD8kwe3KCEpjGAHzyFMKnu8-1755764967-1.2.1.1-Gt557Zs5aSZjv6m6FveHMcWDxn2hlclmWsyygXdgSPnedXOlbKTh.5yPJz7BbDwTehr80GRdet62NpH_lPpa2uoBOWuDC4VlmsFs.ZDFa2VgkUcofScjnERfjc2qJkSRFnohHBQ5YtcnuT0aD92Vv6t517nXM6SboqnmEV6oLEGa0pu.kuG1odJNnFebsXnTJ2i.cyMezYUbl56Basvfmih1s9uVNnF2VYPgT9OAGVU',
-            '_ga_4JSC4GJHB3': 'GS2.2.s1755764968$o4$g0$t1755764968$j60$l0$h0',
-            '__gads': 'ID=67ec3cd6a78a0163:T=1755675688:RT=1755764967:S=ALNI_MZm45eCmmymGlxPcxbBC0lkawLRkQ',
-            '__gpi': 'UID=000011834b99d1e6:T=1755675688:RT=1755764967:S=ALNI_MZb7MpLEEnHqjbgkgsUUUBibpkcIw',
-            '__eoi': 'ID=e0c330f59c61e8dd:T=1755675688:RT=1755764967:S=AA-AfjYbduvrDLcWZFsoxV1GzKvi',
-        }
-
-        headers = {
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-            'accept-language': 'zh-CN,zh;q=0.9',
-            'cache-control': 'max-age=0',
-            'content-type': 'application/x-www-form-urlencoded',
-            'origin': 'https://freecarrierlookup.com',
-            'priority': 'u=0, i',
-            'referer': 'https://freecarrierlookup.com/',
-            'sec-ch-ua': '"Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"',
-            'sec-ch-ua-mobile': '?0',
-            'sec-ch-ua-platform': '"macOS"',
-            'sec-fetch-dest': 'document',
-            'sec-fetch-mode': 'navigate',
-            'sec-fetch-site': 'same-origin',
-            'sec-fetch-user': '?1',
-            'upgrade-insecure-requests': '1',
-            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36',
-            # 'cookie': 'PHPSESSID=78256ebt61le7vudq79d8bm907; _ga=GA1.2.613962221.1755675688; _gid=GA1.2.308913265.1755675688; cf_clearance=UsNXOkAx1.5XAZeYeyJ4tD8kwe3KCEpjGAHzyFMKnu8-1755764967-1.2.1.1-Gt557Zs5aSZjv6m6FveHMcWDxn2hlclmWsyygXdgSPnedXOlbKTh.5yPJz7BbDwTehr80GRdet62NpH_lPpa2uoBOWuDC4VlmsFs.ZDFa2VgkUcofScjnERfjc2qJkSRFnohHBQ5YtcnuT0aD92Vv6t517nXM6SboqnmEV6oLEGa0pu.kuG1odJNnFebsXnTJ2i.cyMezYUbl56Basvfmih1s9uVNnF2VYPgT9OAGVU; _ga_4JSC4GJHB3=GS2.2.s1755764968$o4$g0$t1755764968$j60$l0$h0; __gads=ID=67ec3cd6a78a0163:T=1755675688:RT=1755764967:S=ALNI_MZm45eCmmymGlxPcxbBC0lkawLRkQ; __gpi=UID=000011834b99d1e6:T=1755675688:RT=1755764967:S=ALNI_MZb7MpLEEnHqjbgkgsUUUBibpkcIw; __eoi=ID=e0c330f59c61e8dd:T=1755675688:RT=1755764967:S=AA-AfjYbduvrDLcWZFsoxV1GzKvi',
-        }
-
-        # 请求数据
-        data = {
-            'test': '456Tabo',
-            'cc': '1',
-            'phonenum': phone_number,
-            'sessionlogin': '1'
-        }
-        
-        def make_request(use_proxies=True):
-            """内部函数：发送请求"""
-            current_proxies = proxies if use_proxies else None
+            self.browser.ele('@class=form-control required input-lg pageload-focus').input(phone_number, True)
+            self.browser.ele('@class=btn btn-success btn-lg').click()
+            result = self.browser.ele('c:#search-result > div > div:nth-child(8) > p').text
+            print(f"响应内容: {result}")
+            return result == 'y'
+        except Exception as e:
+            print(f"检查运营商类型时出错: {e}")
             
-            try:
-                # 首先检查代理设置是否正确
-                if current_proxies:
-                    proxy_display = {k: v.split('@')[-1] if '@' in v else v for k, v in current_proxies.items()}
-                    print(f"使用代理请求: {proxy_display}")
-                else:
-                    print("不使用代理直接请求")
-
-                response = self.session.post(
-                    'https://freecarrierlookup.com/getcarrier_free.php',
-                    headers=headers,
-                    cookies=cookies,
-                    data=data,
-                    proxies=current_proxies,
-                    timeout=20  # 增加超时时间
-                )
-
-                print(f"响应状态码: {response.status_code}")
-                if response.status_code == 200:
-                    response_text = response.text
-                    print(f"  -> API响应: {response_text[:100]}...")
-                    
-                    # 解析响应 - 从JSON的html字段中提取Is Wireless信息
-                    try:
-                        response_data = json.loads(response_text)
-
-                        print(f"  -> API响应数据: {response_data}")
-                        # 检查status是否为success
-                        if response_data.get('status') == 'success':
-                            html_content = response_data.get('html', '')
-                            
-                            # 使用正则表达式从HTML中提取Is Wireless信息
-                            # 匹配模式: Is Wireless:</strong> 后跟一些内容，然后在<p>标签中找到y/n值
-                            wireless_pattern = r'Is Wireless:</strong>.*?<p>\s*([a-zA-Z])\s*</p>'
-                            wireless_match = re.search(wireless_pattern, html_content, re.IGNORECASE | re.DOTALL)
-
-                            print(f"  -> 正则匹配结果: {wireless_match}")
-                            if wireless_match:
-                                wireless_value = wireless_match.group(1).lower()
-                                print(f"  -> 找到Is Wireless: {wireless_value}")
-                                if wireless_value == 'y':
-                                    return True
-                            else:
-                                print(f"  -> 未找到Is Wireless信息")
-                                # 输出HTML片段用于调试
-                                print(f"  -> HTML片段: {html_content[:300]}...")
-                        else:
-                            print(f"  -> API状态不是success: {response_data.get('status')}")
-                            
-                    except json.JSONDecodeError as e:
-                        print(f"  -> JSON解析失败: {e}")
-                        print(f"  -> 响应内容: {response_text[:200]}...")
-                else:
-                    print(f"  -> HTTP请求失败，状态码: {response.status_code}")
-                    print(f"  -> 响应内容: {response.text[:200]}...")
-                            
-            except Exception as e:
-                print(f"检查运营商类型时出错: {e}")
-                return False
-            
-            return False
-        
-        # 首先尝试使用代理（如果有）
-        if proxies:
-            result = make_request(use_proxies=True)
-            if result:
-                return True
-            
-            # 如果代理失败，尝试不使用代理
-            print("  -> 代理连接失败，尝试不使用代理重试...")
-            result = make_request(use_proxies=False)
-            if result:
-                return True
-        else:
-            # 没有代理，直接请求
-            result = make_request(use_proxies=False)
-            if result:
-                return True
-        
         return False
     
     def save_json_file(self, data, file_path):
@@ -422,7 +261,6 @@ class PhoneClassifier:
         
         for data in json_files:
             phone = data.get('phone', '')
-            proxy_info = data.get('proxy', [])
             session_file = data.get('session_file', '')
             original_filename = data.get('_original_filename', '')
             
@@ -431,7 +269,7 @@ class PhoneClassifier:
                 print(f"美国电话: {phone}")
                 
                 # 检查是否为实体卡
-                is_physical = self.check_carrier_type(phone, proxy_info)
+                is_physical = self.check_carrier_type(phone)
                 
                 if is_physical:
                     physical_count += 1
@@ -518,8 +356,28 @@ class PhoneClassifier:
             print(f"删除文件夹时出错: {e}")
         
         print("所有处理完成！")
+        
+        # 关闭浏览器
+        try:
+            self.browser.quit()
+            print("浏览器已关闭")
+        except Exception as e:
+            print(f"关闭浏览器时出错: {e}")
 
 
 if __name__ == "__main__":
     classifier = PhoneClassifier()
-    classifier.process_files()
+    try:
+        classifier.process_files()
+    except KeyboardInterrupt:
+        print("\n用户中断程序")
+        try:
+            classifier.browser.quit()
+        except:
+            pass
+    except Exception as e:
+        print(f"程序运行出错: {e}")
+        try:
+            classifier.browser.quit()
+        except:
+            pass
